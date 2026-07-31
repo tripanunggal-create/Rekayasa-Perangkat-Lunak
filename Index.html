@@ -1,0 +1,930 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Play, ChevronRight, AlertTriangle, CheckCircle, XCircle, 
+  Search, PenTool, Code, Settings, Info, Check, 
+  MessageSquare, UserX, MonitorOff, HelpCircle, Award, 
+  ArrowRight, BookOpen, User, Briefcase, FileText, Rocket, ShieldCheck, 
+  RefreshCw, Sparkles, Layout, Zap, TerminalSquare
+} from 'lucide-react';
+
+// --- STYLES, FONTS & ANIMATIONS ---
+const fontStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+  
+  .font-poppins { font-family: 'Poppins', sans-serif; }
+  
+  /* Background Patterns */
+  .bg-grid-pattern {
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  /* Animations */
+  .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+  .float { animation: floating 3s ease-in-out infinite; }
+  .float-delayed { animation: floating 3s ease-in-out 1.5s infinite; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .pulse-ring {
+    animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulseRing {
+    0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+    100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  }
+
+  /* Shimmer button effect */
+  .btn-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%; right: -50%; bottom: -50%; left: -50%;
+    background: linear-gradient(to bottom, rgba(229, 231, 235, 0), rgba(255,255,255, 0.5) 50%, rgba(229, 231, 235, 0));
+    transform: rotateZ(60deg) translate(-5em, 7.5em);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer {
+    100% { transform: rotateZ(60deg) translate(1em, -9em); }
+  }
+`;
+
+// --- COMPONENTS ---
+
+// 1. Opening
+const Opening = ({ onNext }) => (
+  <div className="relative flex flex-col items-center justify-center min-h-[85vh] text-center px-4 overflow-hidden">
+    {/* Decorative Background Blobs */}
+    <div className="absolute top-20 left-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 float"></div>
+    <div className="absolute bottom-10 right-20 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 float-delayed"></div>
+    
+    <div className="relative z-10 slide-up max-w-3xl mx-auto flex flex-col items-center">
+      <div className="inline-flex items-center gap-2 bg-white px-5 py-2 rounded-full text-sm font-bold text-blue-600 mb-8 shadow-sm border border-blue-100 uppercase tracking-wider">
+        <Sparkles size={16} className="text-yellow-500" />
+        Misi 1 - Intro ke RPL
+      </div>
+      
+      <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 mb-6 font-poppins leading-tight">
+        Mengapa Rekayasa <br/><span className="text-blue-600">Perangkat Lunak</span> Penting?
+      </h1>
+      
+      <p className="text-xl text-slate-600 mb-12 max-w-2xl leading-relaxed">
+        Hari ini kamu akan berperan sebagai seorang <span className="font-semibold text-slate-800">Software Developer</span>. Bersiaplah untuk menghadapi proyek pertamamu!
+      </p>
+      
+      <button 
+        onClick={onNext}
+        className="btn-shimmer flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all shadow-[0_10px_40px_-10px_rgba(79,70,229,0.7)] hover:shadow-[0_15px_50px_-10px_rgba(79,70,229,0.9)] transform hover:-translate-y-1"
+      >
+        <Play size={24} fill="currentColor" />
+        Mulai Misi Sekarang
+      </button>
+    </div>
+  </div>
+);
+
+// 2. Story
+const Story = ({ onNext }) => {
+  const [step, setStep] = useState(0);
+  
+  const dialogues = [
+    { sender: 'manager', role: 'Manager Proyek', icon: <Briefcase size={20}/>, text: "Selamat datang di tim! Klien kita baru saja meminta dibuatkan aplikasi peminjaman ruang kelas. Waktu kita sempit, harus cepat rilis." },
+    { sender: 'me', role: 'Kamu (Developer)', icon: <User size={20}/>, text: "Siap, Pak! Kalau begitu mari kita langsung mulai nulis baris kode (coding) agar aplikasinya cepat selesai!" },
+    { sender: 'info', text: "BEBERAPA MINGGU KEMUDIAN...\nTim langsung menulis kode tanpa dokumen analisis rinci, tanpa rancangan desain UI, dan tanpa bertanya lebih lanjut kepada klien." },
+    { sender: 'klien', role: 'Klien (Universitas)', icon: <UserX size={20}/>, text: "Tunggu... Ini bukan aplikasi yang kami inginkan! Mengapa dosen tidak bisa membatalkan peminjaman? Dan di mana fitur persetujuan untuk Admin?" },
+  ];
+
+  return (
+    <div className="max-w-3xl mx-auto py-12 px-4 slide-up">
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-bold text-slate-800 font-poppins">Skenario Proyek Pertamamu</h2>
+        <p className="text-slate-500 mt-2">Bacalah alur komunikasi tim di bawah ini.</p>
+      </div>
+
+      <div className="glass-panel rounded-3xl p-6 md:p-8 shadow-xl mb-10 min-h-[400px] flex flex-col gap-6">
+        {dialogues.map((d, i) => {
+          if (i > step) return null;
+          
+          if (d.sender === 'info') {
+            return (
+              <div key={i} className="fade-in my-4 flex justify-center">
+                <div className="bg-amber-100 text-amber-800 text-xs font-bold px-4 py-2 rounded-full border border-amber-200 text-center whitespace-pre-line tracking-wide">
+                  {d.text}
+                </div>
+              </div>
+            );
+          }
+
+          const isMe = d.sender === 'me';
+          const isKlien = d.sender === 'klien';
+          
+          return (
+            <div key={i} className={`fade-in flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] ${isMe ? 'self-end' : 'self-start'}`}>
+              <div className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs shadow-sm ${isMe ? 'bg-blue-500' : isKlien ? 'bg-red-500' : 'bg-purple-600'}`}>
+                  {d.icon}
+                </div>
+                <span className="text-xs font-bold text-slate-500">{d.role}</span>
+              </div>
+              <div className={`px-5 py-4 text-[15px] leading-relaxed shadow-sm ${
+                isMe 
+                  ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' 
+                  : isKlien 
+                    ? 'bg-red-50 text-red-900 border border-red-100 rounded-2xl rounded-tl-sm'
+                    : 'bg-white text-slate-700 border border-slate-100 rounded-2xl rounded-tl-sm'
+              }`}>
+                {d.text}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      <div className="flex justify-center">
+        {step < dialogues.length - 1 ? (
+          <button onClick={() => setStep(step + 1)} className="group bg-slate-800 hover:bg-slate-900 text-white font-semibold flex items-center gap-2 px-8 py-4 rounded-full transition-all shadow-lg transform hover:-translate-y-1">
+            Lanjut Membaca <ChevronRight className="group-hover:translate-x-1 transition-transform" size={20} />
+          </button>
+        ) : (
+          <button onClick={onNext} className="btn-shimmer bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all shadow-[0_8px_30px_-10px_rgba(225,29,72,0.6)] transform hover:-translate-y-1">
+            <Search size={20} /> Investigasi Kegagalan Ini
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 3. Explore
+const Explore = ({ onNext }) => {
+  const [discovered, setDiscovered] = useState([]);
+  const [activeSpot, setActiveSpot] = useState(null);
+  
+  const hotspots = [
+    { id: 1, top: '20%', left: '20%', title: 'Tanpa Analisis (Requirement)', desc: 'Tim tidak menggali kebutuhan sebenarnya. Fitur penting seperti persetujuan admin akhirnya terlewat karena asumsi sepihak.' },
+    { id: 2, top: '40%', left: '80%', title: 'Tanpa Desain (UI/UX & Sistem)', desc: 'Tidak ada rancangan antarmuka atau database. Akibatnya, alur aplikasi membingungkan saat sudah jadi.' },
+    { id: 3, top: '75%', left: '30%', title: 'Tanpa Pengujian (Testing)', desc: 'Tidak ada tahap pengujian formal. Error dan bug dibiarkan, dan justru klien yang pertama kali menemukannya.' },
+    { id: 4, top: '60%', left: '70%', title: 'Kurang Komunikasi', desc: 'Tim asik coding sendiri selama berminggu-minggu tanpa pernah memperlihatkan purwarupa (prototype) ke klien.' },
+  ];
+
+  const handleDiscover = (spot) => {
+    if (!discovered.includes(spot.id)) {
+      setDiscovered([...discovered, spot.id]);
+    }
+    setActiveSpot(spot);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto py-12 px-4 slide-up">
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-bold text-slate-800 mb-3 font-poppins">Ruang Investigasi</h2>
+        <p className="text-slate-600 bg-white inline-block px-4 py-1 rounded-full border border-slate-200 shadow-sm">
+          Klik pada <strong className="text-blue-600">titik peringatan merah</strong> di layar aplikasi yang rusak ini.
+        </p>
+      </div>
+
+      {/* Pseudo Browser UI - Visual Enhancement */}
+      <div className="relative w-full max-w-3xl mx-auto bg-slate-900 rounded-xl border-4 border-slate-800 shadow-2xl overflow-hidden mb-8">
+        {/* Browser Header */}
+        <div className="bg-slate-800 px-4 py-3 flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <div className="mx-auto bg-slate-700 h-5 w-48 rounded-md text-[10px] text-center text-slate-400 flex items-center justify-center font-mono">
+            localhost:3000/app
+          </div>
+        </div>
+        
+        {/* Browser Content (Broken UI) */}
+        <div className="h-64 sm:h-80 bg-slate-100 relative p-4 flex flex-col gap-4 opacity-80">
+          <div className="flex gap-4">
+            <div className="w-1/4 h-32 bg-slate-300 rounded-lg animate-pulse"></div>
+            <div className="w-3/4 flex flex-col gap-2">
+              <div className="w-full h-8 bg-red-200 border-2 border-red-400 rounded border-dashed"></div>
+              <div className="w-1/2 h-4 bg-slate-300 rounded"></div>
+              <div className="w-full h-16 bg-slate-300 rounded mt-2"></div>
+            </div>
+          </div>
+          <div className="w-full h-24 bg-yellow-100 border-2 border-yellow-300 border-dashed rounded mt-auto flex items-center justify-center text-yellow-600 font-mono text-sm">
+            [Error: Component Not Found]
+          </div>
+
+          {/* Hotspots Container */}
+          <div className="absolute inset-0">
+            {hotspots.map((spot) => (
+              <button 
+                key={spot.id}
+                onClick={() => handleDiscover(spot)}
+                style={{ top: spot.top, left: spot.left, transform: 'translate(-50%, -50%)' }}
+                className={`absolute z-10 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
+                  activeSpot?.id === spot.id 
+                    ? 'bg-blue-600 ring-4 ring-blue-300/50 scale-110 shadow-lg' 
+                    : discovered.includes(spot.id) 
+                      ? 'bg-emerald-500 shadow-md hover:bg-emerald-400' 
+                      : 'bg-rose-500 pulse-ring'
+                }`}
+              >
+                {discovered.includes(spot.id) ? <Check size={24} /> : <AlertTriangle size={20} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Info Panel Base */}
+      <div className="max-w-3xl mx-auto min-h-[150px] mb-8">
+        {activeSpot ? (
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 fade-in relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+            <div className="flex items-start gap-5">
+              <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl shrink-0">
+                <Search size={28} />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-slate-800 mb-2">{activeSpot.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{activeSpot.desc}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white/50 backdrop-blur border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-500 flex flex-col items-center justify-center h-full">
+            <Layout size={32} className="mb-3 opacity-40" />
+            <p className="font-medium">Pilih titik peringatan pada layar aplikasi di atas.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Progress & Next */}
+      <div className="max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700">
+            {discovered.length}/{hotspots.length}
+          </div>
+          <span className="font-semibold text-slate-600">Penyebab Ditemukan</span>
+        </div>
+        <button 
+          onClick={onNext}
+          disabled={discovered.length < hotspots.length}
+          className={`px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 transition-all w-full sm:w-auto justify-center ${
+            discovered.length === hotspots.length 
+              ? 'bg-slate-800 text-white hover:bg-slate-900 shadow-md transform hover:-translate-y-1' 
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+          }`}
+        >
+          Tarik Kesimpulan <ChevronRight size={20} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// 4. Decision
+const Decision = ({ onNext }) => {
+  const [selected, setSelected] = useState(null);
+
+  const options = [
+    { id: 'A', text: 'Programmer di tim kurang cerdas dan malas.' },
+    { id: 'B', text: 'Salah memilih bahasa pemrograman (tools).' },
+    { id: 'C', text: 'Ketiadaan proses rekayasa perangkat lunak yang jelas.' },
+    { id: 'D', text: 'Laptop/Hardware yang digunakan terlalu lambat.' }
+  ];
+
+  const feedback = {
+    'A': 'Kecerdasan teknis tidak berguna jika bekerja tanpa perencanaan dan dokumentasi yang jelas. Ini bukan masalah personal.',
+    'B': 'Bahasa pemrograman hanyalah alat. Aplikasi tidak sesuai kebutuhan hampir selalu karena komunikasi & analisis buruk, bukan alatnya.',
+    'C': 'Tepat! Kegagalan utama proyek ini adalah ketiadaan proses sistematis. Coding hanyalah satu bagian kecil dari pembuatan software.',
+    'D': 'Alat lambat mungkin membuat durasi pengerjaan lama, tapi tidak akan membuat fitur akhir melenceng dari keinginan klien.'
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto py-12 px-4 slide-up">
+      <div className="text-center mb-10">
+        <div className="inline-block bg-indigo-100 text-indigo-700 p-3 rounded-2xl mb-4">
+          <Brain size={32} />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-800 mb-4 font-poppins">Analisis Keputusan</h2>
+        <p className="text-lg text-slate-600 max-w-xl mx-auto">
+          Dari hasil investigasi sebelumnya, menurutmu apa <strong className="text-slate-800">akar masalah utama</strong> mengapa proyek ini gagal?
+        </p>
+      </div>
+      
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        {options.map((opt) => {
+          const isSelected = selected === opt.id;
+          const isCorrect = opt.id === 'C';
+          
+          let cardStyle = "bg-white border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md text-slate-700";
+          let badgeStyle = "bg-slate-100 text-slate-500";
+
+          if (isSelected) {
+            if (isCorrect) {
+              cardStyle = "bg-emerald-50 border-2 border-emerald-500 shadow-lg text-emerald-900 transform scale-[1.02]";
+              badgeStyle = "bg-emerald-500 text-white";
+            } else {
+              cardStyle = "bg-rose-50 border-2 border-rose-400 text-rose-900";
+              badgeStyle = "bg-rose-500 text-white";
+            }
+          }
+
+          return (
+            <button 
+              key={opt.id}
+              onClick={() => setSelected(opt.id)}
+              className={`text-left p-6 rounded-2xl transition-all duration-300 ${cardStyle}`}
+            >
+              <div className="flex flex-col gap-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${badgeStyle}`}>
+                  {opt.id}
+                </div>
+                <span className="font-semibold text-lg leading-snug">{opt.text}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {selected && (
+        <div className={`p-6 md:p-8 rounded-3xl fade-in mb-8 shadow-sm border ${selected === 'C' ? 'bg-emerald-100 border-emerald-200' : 'bg-rose-100 border-rose-200'}`}>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
+            <div className={`p-3 rounded-full shrink-0 ${selected === 'C' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+              {selected === 'C' ? <CheckCircle size={32} /> : <XCircle size={32} />}
+            </div>
+            <div className="flex-1">
+              <h3 className={`font-bold text-xl mb-2 ${selected === 'C' ? 'text-emerald-800' : 'text-rose-800'}`}>
+                {selected === 'C' ? 'Analisis Tepat Sekali!' : 'Kurang Tepat, Coba Pikirkan Lagi'}
+              </h3>
+              <p className={`leading-relaxed text-lg ${selected === 'C' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {feedback[selected]}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selected === 'C' && (
+        <div className="flex justify-center fade-in">
+          <button onClick={onNext} className="btn-shimmer bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] transform hover:-translate-y-1 transition-all">
+            Pelajari Solusinya <ArrowRight size={20} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Fix untuk Icon Lucide tambahan
+const Brain = ({ size }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/></svg>
+);
+
+// 5. Insight
+const Insight = ({ onNext }) => (
+  <div className="max-w-4xl mx-auto py-16 px-4 slide-up text-center">
+    <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-5 py-2 rounded-full font-bold mb-6">
+      <Sparkles size={18} /> Kesimpulan Penting
+    </div>
+    <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-16 font-poppins leading-tight max-w-2xl mx-auto">
+      Software yang baik tidak dibuat secara kebetulan.
+    </h2>
+    
+    <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-4 mb-20 relative">
+      
+      {/* Background connecting line (Desktop only) */}
+      <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 border-t-4 border-dashed border-slate-200 -z-10 transform -translate-y-1/2"></div>
+      
+      {/* Step 1 */}
+      <div className="bg-white p-6 rounded-3xl w-full md:w-1/3 shadow-md border border-slate-100 z-10 relative">
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-rose-100 p-3 rounded-full text-rose-500 border-4 border-white shadow-sm">
+          <AlertTriangle size={28} />
+        </div>
+        <h3 className="font-bold text-slate-800 mt-6 mb-2">Masalah & Ide</h3>
+        <p className="text-sm text-slate-500">Kebutuhan klien yang ambigu, kompleks, dan abstrak.</p>
+      </div>
+      
+      <div className="md:hidden text-slate-300 my-2"><ArrowRight size={24} className="rotate-90" /></div>
+      
+      {/* Step 2 (Highlighted) */}
+      <div className="bg-gradient-to-b from-indigo-500 to-indigo-700 p-8 rounded-3xl w-full md:w-1/3 shadow-2xl z-10 transform md:scale-110 relative text-white">
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-indigo-600 p-4 rounded-full text-white border-4 border-white shadow-xl">
+          <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
+        </div>
+        <h3 className="font-bold text-xl mt-6 mb-2">Rekayasa Perangkat Lunak</h3>
+        <p className="text-sm text-indigo-100">Proses sistematis, disiplin ilmu, dan jembatan solusi.</p>
+      </div>
+
+      <div className="md:hidden text-slate-300 my-2"><ArrowRight size={24} className="rotate-90" /></div>
+
+      {/* Step 3 */}
+      <div className="bg-white p-6 rounded-3xl w-full md:w-1/3 shadow-md border border-slate-100 z-10 relative">
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-emerald-100 p-3 rounded-full text-emerald-500 border-4 border-white shadow-sm">
+          <CheckCircle size={28} />
+        </div>
+        <h3 className="font-bold text-slate-800 mt-6 mb-2">Produk Berkualitas</h3>
+        <p className="text-sm text-slate-500">Sesuai kebutuhan, minim bug, dan mudah dirawat.</p>
+      </div>
+    </div>
+
+    <button onClick={onNext} className="bg-slate-800 hover:bg-slate-900 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg transform hover:-translate-y-1 transition-all inline-flex items-center gap-3">
+      Mulai Pelajari Konsepnya <BookOpen size={20} />
+    </button>
+  </div>
+);
+
+// 6. Materi (Cards)
+const Materi = ({ onNext }) => {
+  return (
+    <div className="max-w-4xl mx-auto py-12 px-4 slide-up">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl font-bold text-slate-800 mb-4 font-poppins">Mengenal Rekayasa Perangkat Lunak</h2>
+        <p className="text-slate-600 max-w-2xl mx-auto">
+          Membangun perangkat lunak skala besar membutuhkan struktur. Ini bukan lagi soal menulis tugas kuliah, melainkan membangun produk industri.
+        </p>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-3xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-5 text-blue-600">
+            <Code size={120} />
+          </div>
+          <div className="bg-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-md relative z-10">
+            <BookOpen size={28} />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 mb-3 font-poppins relative z-10">Apa itu RPL?</h3>
+          <p className="text-slate-600 leading-relaxed relative z-10 text-lg">
+            (Software Engineering) adalah pendekatan <strong className="text-blue-700">sistematis, terstruktur, dan disiplin</strong> untuk pengembangan, operasi, dan pemeliharaan perangkat lunak.
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border border-indigo-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-5 text-indigo-600">
+            <Zap size={120} />
+          </div>
+          <div className="bg-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-md relative z-10">
+            <HelpCircle size={28} />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 mb-3 font-poppins relative z-10">Kenapa Harus Proses?</h3>
+          <p className="text-slate-600 leading-relaxed relative z-10 text-lg">
+            Tanpa proses (SDLC) yang ketat, proyek berpotensi besar <strong className="text-indigo-700">kelebihan anggaran, terlambat,</strong> atau menghasilkan aplikasi yang tidak sesuai keinginan klien.
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-slate-900 text-white p-8 md:p-10 rounded-3xl shadow-xl mb-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+        
+        <h3 className="text-2xl font-bold mb-8 font-poppins flex items-center gap-3 relative z-10">
+          <Award className="text-yellow-400" size={32}/> Manfaat Bagi Industri
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4 relative z-10">
+          {[
+            'Mengurangi bug & error sejak tahap awal',
+            'Menghemat biaya & waktu pengembangan',
+            'Memudahkan kolaborasi tim besar',
+            'Memastikan produk menjawab masalah user',
+            'Mempermudah pembaruan jangka panjang'
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-start gap-3 bg-white/10 p-4 rounded-xl border border-white/5">
+              <CheckCircle size={24} className="text-emerald-400 shrink-0" />
+              <span className="text-slate-200 font-medium">{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <button onClick={onNext} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg inline-flex items-center gap-3 transition-all shadow-[0_10px_20px_-10px_rgba(37,99,235,0.6)] transform hover:-translate-y-1">
+          Lanjut ke Siklus Pengembangan <ChevronRight size={20} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// 7. Mini Interaction (Ordering 7 SDLC Stages)
+const MiniInteraction = ({ onNext }) => {
+  const correctOrder = ['Perencanaan', 'Analisis', 'Desain', 'Implementasi', 'Pengujian', 'Rilis', 'Pemeliharaan'];
+  
+  const icons = {
+    'Perencanaan': <FileText size={18} />,
+    'Analisis': <Search size={18} />,
+    'Desain': <PenTool size={18} />,
+    'Implementasi': <TerminalSquare size={18} />,
+    'Pengujian': <ShieldCheck size={18} />,
+    'Rilis': <Rocket size={18} />,
+    'Pemeliharaan': <Settings size={18} />
+  };
+
+  const [available, setAvailable] = useState(['Rilis', 'Analisis', 'Pemeliharaan', 'Perencanaan', 'Implementasi', 'Desain', 'Pengujian']);
+  const [selected, setSelected] = useState([]);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSelect = (item) => {
+    setErrorMsg('');
+    const newSelected = [...selected, item];
+    setSelected(newSelected);
+    setAvailable(available.filter(i => i !== item));
+
+    if (newSelected.length === 7) {
+      if (JSON.stringify(newSelected) === JSON.stringify(correctOrder)) {
+        setIsSuccess(true);
+      } else {
+        setErrorMsg('Urutannya masih keliru. Siklus dimulai dari ide/rencana hingga aplikasi dirawat. Coba lagi!');
+        setTimeout(() => {
+          setSelected([]);
+          setAvailable(['Rilis', 'Analisis', 'Pemeliharaan', 'Perencanaan', 'Implementasi', 'Desain', 'Pengujian']);
+          setErrorMsg('');
+        }, 3000);
+      }
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto py-12 px-4 slide-up text-center">
+      <h2 className="text-3xl font-bold text-slate-800 mb-4 font-poppins">Rakit Siklus SDLC</h2>
+      <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
+        <strong>Software Development Life Cycle (SDLC)</strong> adalah standar industri. 
+        Klik tahapan di bawah ini secara berurutan, dari awal mula proyek hingga selesai.
+      </p>
+
+      {/* Selected Area Container */}
+      <div className="glass-panel p-6 md:p-8 rounded-3xl mb-10 min-h-[160px] flex items-center justify-center flex-wrap gap-3 shadow-inner">
+        {selected.length === 0 && available.length > 0 && (
+          <div className="text-slate-400 font-medium border-2 border-dashed border-slate-300 rounded-xl px-8 py-4">
+            Mulai pilih tahapan pertama (Tahap Awal)
+          </div>
+        )}
+        
+        {selected.map((item, idx) => (
+          <React.Fragment key={idx}>
+            <div className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white px-4 py-3 text-sm md:text-base rounded-xl font-bold shadow-[0_5px_0_0_#312e81] flex items-center gap-2 fade-in transform translate-y-[-2px]">
+              {icons[item]} <span className="hidden sm:inline">{item}</span>
+            </div>
+            {idx < 6 && selected.length > idx + 1 && <ArrowRight size={20} className="text-indigo-300" />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Available Choices */}
+      {!isSuccess && (
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {available.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSelect(item)}
+              className="bg-white border-2 border-slate-200 text-slate-700 px-5 py-3 rounded-xl font-bold hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all flex items-center gap-2 shadow-sm text-sm md:text-base transform hover:-translate-y-1"
+            >
+              {icons[item]} {item}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {errorMsg && (
+        <div className="text-rose-600 font-semibold mb-4 fade-in bg-rose-50 border border-rose-200 inline-block px-6 py-3 rounded-xl shadow-sm">
+          <AlertTriangle size={20} className="inline mr-2 -mt-1"/> {errorMsg}
+        </div>
+      )}
+
+      {isSuccess && (
+        <div className="fade-in bg-gradient-to-br from-emerald-400 to-emerald-600 text-white p-8 rounded-3xl mb-8 max-w-2xl mx-auto shadow-xl">
+          <div className="bg-white text-emerald-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+            <CheckCircle size={40} />
+          </div>
+          <h3 className="text-2xl font-bold mb-2 font-poppins">Kerja Bagus!</h3>
+          <p className="text-emerald-50 mb-8 text-lg">Kamu telah memahami 7 pilar alur kerja Software Engineer profesional.</p>
+          <button onClick={onNext} className="bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-full font-bold flex items-center justify-center gap-2 mx-auto transition-colors shadow-lg">
+            Uji Pemahamanmu (Kuis) <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 8. Mini Quiz
+const MiniQuiz = ({ onNext }) => {
+  const [currentQ, setCurrentQ] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  const questions = [
+    {
+      q: "Mengapa skenario proyek di awal modul ini gagal?",
+      options: [
+        "Karena tidak ada tahapan analisis dan desain yang jelas",
+        "Karena menggunakan laptop spesifikasi rendah",
+        "Karena klien tidak tahu apa yang mereka inginkan",
+        "Karena programmer tidak pandai coding"
+      ],
+      ans: 0
+    },
+    {
+      q: "Apa tujuan utama dari tahapan Analisis Kebutuhan?",
+      options: [
+        "Menulis kode program sebanyak mungkin",
+        "Memahami dan mendokumentasikan apa yang sebenarnya dibutuhkan pengguna",
+        "Mencari bug pada aplikasi",
+        "Memilih bahasa pemrograman yang sedang tren"
+      ],
+      ans: 1
+    },
+    {
+      q: "Tahapan apa yang bertujuan memastikan aplikasi berjalan sesuai harapan dan bebas dari bug sebelum dirilis?",
+      options: ["Desain", "Implementasi", "Pengujian (Testing)", "Pemeliharaan"],
+      ans: 2
+    },
+    {
+      q: "Setelah aplikasi dirilis ke pengguna, tahapan apa yang dilakukan untuk memperbaiki error yang baru ditemukan atau menambah fitur?",
+      options: ["Perencanaan", "Pengujian", "Pemeliharaan (Maintenance)", "Implementasi"],
+      ans: 2
+    },
+    {
+      q: "Apa manfaat utama menerapkan Rekayasa Perangkat Lunak bagi perusahaan/industri?",
+      options: [
+        "Membuat harga software menjadi sangat mahal",
+        "Menghasilkan software berkualitas tinggi, hemat biaya, dan tepat waktu",
+        "Mengurangi jumlah programmer yang dibutuhkan",
+        "Membuat proses pembuatan software menjadi lambat"
+      ],
+      ans: 1
+    }
+  ];
+
+  const handleAnswer = (index) => {
+    setSelected(index);
+    setTimeout(() => {
+      if (index === questions[currentQ].ans) {
+        setScore(score + 1);
+      }
+      
+      if (currentQ < questions.length - 1) {
+        setCurrentQ(currentQ + 1);
+        setSelected(null);
+      } else {
+        setShowResult(true);
+      }
+    }, 1000); // Penundaan lebih lama agar animasi feedback terlihat
+  };
+
+  if (showResult) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-4 text-center slide-up">
+        <div className="bg-white p-10 md:p-14 rounded-[40px] shadow-2xl border border-slate-100 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-100 rounded-full blur-3xl"></div>
+          <Award size={80} className="text-yellow-400 mx-auto mb-6 relative z-10 filter drop-shadow-md" />
+          <h2 className="text-4xl font-extrabold text-slate-800 mb-2 font-poppins relative z-10">Kuis Selesai!</h2>
+          <p className="text-lg text-slate-500 mb-8 relative z-10">Hasil pencapaianmu:</p>
+          
+          <div className="text-7xl font-black text-blue-600 mb-10 font-poppins relative z-10 tracking-tighter">
+            {score * 20}<span className="text-4xl text-slate-300 font-bold">/100</span>
+          </div>
+          
+          <button onClick={onNext} className="btn-shimmer w-full bg-slate-900 hover:bg-black text-white py-5 rounded-2xl font-bold text-lg shadow-xl relative z-10 transition-transform transform hover:-translate-y-1">
+            Lanjut ke Jurnal Refleksi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Progress Bar for Quiz
+  const progressPercent = ((currentQ) / questions.length) * 100;
+
+  return (
+    <div className="max-w-2xl mx-auto py-12 px-4 slide-up">
+      {/* Visual Stepper */}
+      <div className="mb-10">
+        <div className="flex justify-between items-center text-sm font-bold text-slate-500 mb-3">
+          <span>Pertanyaan {currentQ + 1} dari {questions.length}</span>
+          <span className="text-blue-600">Skor: {score * 20}</span>
+        </div>
+        <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-full bg-blue-600 transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }}></div>
+        </div>
+      </div>
+      
+      <h3 className="text-2xl font-bold text-slate-800 mb-8 font-poppins leading-normal">
+        {questions[currentQ].q}
+      </h3>
+      
+      <div className="space-y-4">
+        {questions[currentQ].options.map((opt, idx) => {
+          let btnClass = "bg-white border-2 border-slate-200 text-slate-700 hover:border-blue-400 hover:shadow-md";
+          
+          if (selected !== null) {
+            if (idx === questions[currentQ].ans) {
+              btnClass = "bg-emerald-50 border-emerald-500 text-emerald-900 shadow-md transform scale-[1.02]";
+            } else if (idx === selected) {
+              btnClass = "bg-rose-50 border-rose-400 text-rose-900";
+            } else {
+              btnClass = "bg-white border-slate-100 text-slate-300 opacity-60";
+            }
+          }
+
+          return (
+            <button
+              key={idx}
+              disabled={selected !== null}
+              onClick={() => handleAnswer(idx)}
+              className={`w-full text-left p-5 rounded-2xl font-semibold text-lg transition-all duration-300 flex items-center justify-between ${btnClass}`}
+            >
+              <span>{opt}</span>
+              {selected !== null && idx === questions[currentQ].ans && <CheckCircle className="text-emerald-500 shrink-0" size={24}/>}
+              {selected === idx && idx !== questions[currentQ].ans && <XCircle className="text-rose-500 shrink-0" size={24}/>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// 9. Reflection
+const Reflection = ({ onNext }) => {
+  const [text, setText] = useState("");
+
+  return (
+    <div className="max-w-2xl mx-auto py-16 px-4 slide-up">
+      <div className="glass-panel p-8 md:p-10 rounded-[32px] shadow-xl border border-slate-200">
+        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+          <MessageSquare size={32} />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-800 mb-4 font-poppins">Jurnal Refleksi</h2>
+        <p className="text-slate-600 mb-8 text-lg leading-relaxed">
+          Setelah menyelesaikan modul ini, menurutmu apa <strong className="text-slate-800">risiko terbesar</strong> jika sebuah software yang kompleks (seperti sistem perbankan) dibangun tanpa proses rekayasa yang terstruktur?
+        </p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="w-full h-40 p-5 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none resize-none mb-8 text-slate-700 text-lg transition-all"
+          placeholder="Ketik pemikiranmu di sini (minimal 1 kalimat)..."
+        ></textarea>
+        <button 
+          onClick={onNext}
+          disabled={text.trim().length < 10}
+          className={`w-full py-5 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+            text.trim().length >= 10 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg transform hover:-translate-y-1' 
+              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+          }`}
+        >
+          Kirim Refleksi & Selesaikan <Check size={24} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// 10. Summary & Closing
+const Summary = () => {
+  const [isDone, setIsDone] = useState(false);
+
+  if (isDone) {
+    return (
+      <div className="max-w-2xl mx-auto py-32 px-4 fade-in text-center flex flex-col items-center">
+        <div className="w-24 h-24 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-6 pulse-ring">
+          <CheckCircle size={48} />
+        </div>
+        <h2 className="text-4xl font-extrabold text-slate-800 mb-4 font-poppins">Modul Selesai!</h2>
+        <p className="text-slate-500 text-xl">Anda dapat menutup halaman tab ini sekarang.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto py-12 px-4 slide-up text-center">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-900 text-white p-10 md:p-14 rounded-[40px] shadow-2xl mb-12 relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400 opacity-20 rounded-full filter blur-[80px]"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 opacity-20 rounded-full filter blur-[80px]"></div>
+        
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="bg-yellow-400/20 p-4 rounded-full mb-6">
+            <Award size={64} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+          </div>
+          <h2 className="text-4xl font-extrabold mb-4 font-poppins">Misi Berhasil!</h2>
+          <p className="text-blue-100 text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+            Kamu telah membuktikan bahwa coding saja tidak cukup. Rekayasa Perangkat Lunak adalah kunci industri menghasilkan sistem yang andal.
+          </p>
+          
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 text-left w-full max-w-lg border border-white/10 shadow-inner">
+            <h3 className="font-bold text-xl mb-6 text-center text-white/90">Ringkasan Inti</h3>
+            <ul className="space-y-5">
+              <li className="flex items-start gap-4">
+                <div className="bg-emerald-500/20 p-1 rounded-full"><CheckCircle size={20} className="text-emerald-400"/></div>
+                <span className="text-blue-50 text-lg leading-tight">RPL adalah proses sistematis pengembangan software.</span>
+              </li>
+              <li className="flex items-start gap-4">
+                <div className="bg-emerald-500/20 p-1 rounded-full"><CheckCircle size={20} className="text-emerald-400"/></div>
+                <span className="text-blue-50 text-lg leading-tight">Mencegah kegagalan proyek & kerugian biaya.</span>
+              </li>
+              <li className="flex items-start gap-4">
+                <div className="bg-emerald-500/20 p-1 rounded-full"><CheckCircle size={20} className="text-emerald-400"/></div>
+                <span className="text-blue-50 text-lg leading-tight">7 Siklus SDLC: Rencana, Analisis, Desain, Implementasi, Pengujian, Rilis, Perawatan.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="inline-block bg-slate-200 text-slate-500 px-6 py-2 rounded-full font-bold text-sm tracking-widest mb-8">
+        PROGRESS 100% SELESAI
+      </div>
+      <br />
+      <button 
+        onClick={() => setIsDone(true)}
+        className="btn-shimmer bg-slate-800 hover:bg-black text-white px-14 py-5 rounded-full font-bold text-xl shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)] hover:shadow-2xl transition-all transform hover:-translate-y-1 inline-flex items-center gap-3"
+      >
+        Tandai Selesai <Check size={24} />
+      </button>
+    </div>
+  );
+};
+
+// --- MAIN APP COMPONENT ---
+export default function App() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const totalSteps = 9;
+
+  const steps = [
+    <Opening onNext={() => setCurrentStep(1)} />,
+    <Story onNext={() => setCurrentStep(2)} />,
+    <Explore onNext={() => setCurrentStep(3)} />,
+    <Decision onNext={() => setCurrentStep(4)} />,
+    <Insight onNext={() => setCurrentStep(5)} />,
+    <Materi onNext={() => setCurrentStep(6)} />,
+    <MiniInteraction onNext={() => setCurrentStep(7)} />,
+    <MiniQuiz onNext={() => setCurrentStep(8)} />,
+    <Reflection onNext={() => setCurrentStep(9)} />,
+    <Summary />
+  ];
+
+  const progress = Math.round((currentStep / totalSteps) * 100);
+
+  // Auto scroll to top on step change with smooth behavior
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] bg-grid-pattern font-poppins text-slate-800 pb-20 selection:bg-blue-200 selection:text-blue-900">
+      <style>{fontStyles}</style>
+
+      {/* Modern Sticky Progress Bar */}
+      <div className="sticky top-0 z-50 glass-panel border-b border-slate-200/50 shadow-sm px-4 py-3 lg:px-8 flex items-center justify-between transition-all">
+        <div className="flex items-center gap-2 text-indigo-600 font-extrabold text-lg tracking-tight">
+          <Code size={24} /> <span className="hidden sm:inline">RPL<span className="text-slate-800">Course</span></span>
+        </div>
+        <div className="flex-1 max-w-xl mx-6">
+          <div className="h-2.5 w-full bg-slate-200/50 rounded-full overflow-hidden shadow-inner">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-700 ease-out relative"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        <div className="text-sm font-bold text-slate-500 w-12 text-right bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+          {progress}%
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <main className="w-full relative z-10">
+        {steps[currentStep]}
+      </main>
+    </div>
+  );
+}
